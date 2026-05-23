@@ -26,6 +26,7 @@ FIGURES.mkdir(exist_ok=True)
 ZORI_URL = "https://files.zillowstatic.com/research/public_csvs/zori/County_zori_uc_sfrcondomfr_sm_sa_month.csv"
 POP_2019_URL = "https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv"
 POP_2023_URL = "https://www2.census.gov/programs-surveys/popest/datasets/2020-2023/counties/totals/co-est2023-alldata.csv"
+BPS_URL = "https://www2.census.gov/econ/bps/County/co{yy}12y.txt"
 ACS_VARS = {
     "population": "B01003_001E",
     "median_income": "B19013_001E",
@@ -122,6 +123,28 @@ def make_population_panel() -> pd.DataFrame:
     return pop
 
 
+def make_permits_panel() -> pd.DataFrame:
+    rows = []
+    for year in range(2018, 2024):
+        yy = str(year)[2:]
+        path = DATA / f"bps_county_{year}.txt"
+        download_file(BPS_URL.format(yy=yy), path)
+        df = pd.read_csv(path, skiprows=3, header=None, dtype={1: str, 2: str})
+        df = df.dropna(subset=[1, 2])
+        df["fips"] = df[1].str.zfill(2) + df[2].str.zfill(3)
+        # Total housing units authorized by permits across 1-unit, 2-unit,
+        # 3-4 unit, and 5+ unit structures.
+        for col in [7, 10, 13, 16]:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+        df["permits"] = df[[7, 10, 13, 16]].sum(axis=1)
+        df["year"] = year
+        rows.append(df[["fips", "year", "permits"]])
+    permits = pd.concat(rows, ignore_index=True)
+    permits = permits.groupby(["fips", "year"], as_index=False)["permits"].sum()
+    permits.to_csv(DATA / "bps_county_annual_permits_2018_2023.csv", index=False)
+    return permits
+
+
 def make_zori_panel() -> pd.DataFrame:
     zori_path = DATA / "zori_county_smoothed_sa_month.csv"
     download_file(ZORI_URL, zori_path)
@@ -150,9 +173,23 @@ def make_zori_panel() -> pd.DataFrame:
 def build_panel() -> pd.DataFrame:
     zori = make_zori_panel()
     pop = make_population_panel()
+    permits = make_permits_panel()
     acs = fetch_acs_snapshot()
-    panel = zori.merge(pop, on=["fips", "year"], how="inner").merge(acs, on="fips", how="left")
+    panel = zori.merge(pop, on=["fips", "year"], how="inner").merge(permits, on=["fips", "year"], how="left").merge(acs, on="fips", how="left")
     panel = panel[(panel["year"] >= 2019) & (panel["year"] <= 2023)].copy()
+    panel["permits"] = panel["permits"].fillna(0)
+    panel["permits_per_1k"] = 1000.0 * panel["permits"] / panel["population"]
+    pre_permits = (
+        permits.merge(pop[["fips", "year", "population"]], on=["fips", "year"], how="left")
+        .assign(permits_per_1k=lambda x: 1000.0 * x["permits"] / x["population"])
+    )
+    pre_permits = (
+        pre_permits[pre_permits["year"].isin([2018, 2019])]
+        .groupby("fips", as_index=False)
+        .agg(pre_permits_per_1k=("permits_per_1k", "mean"))
+    )
+    panel = panel.merge(pre_permits, on="fips", how="left")
+    panel["pre_permits_per_1k"] = panel["pre_permits_per_1k"].fillna(0)
 
     def zscore(s: pd.Series) -> pd.Series:
         return (s - s.mean()) / s.std(ddof=0)
@@ -161,7 +198,8 @@ def build_panel() -> pd.DataFrame:
         -zscore(panel["vacancy_rate"])
         + zscore(panel["renter_share"])
         + zscore(panel["median_gross_rent"])
-    ) / 3.0
+        - zscore(panel["pre_permits_per_1k"])
+    ) / 4.0
     panel["post2020"] = (panel["year"] >= 2020).astype(int)
     panel["pop_growth_pp"] = panel["pop_growth"] * 100.0
     panel["net_migration_rate_pp"] = panel["net_migration_rate"] * 100.0
@@ -174,6 +212,7 @@ def build_panel() -> pd.DataFrame:
         "renter_share",
         "unemployment_rate",
         "lag_zori",
+        "pre_permits_per_1k",
         "supply_constraint",
     ]
     panel = panel.replace([np.inf, -np.inf], np.nan).dropna(subset=needed)
@@ -237,6 +276,7 @@ def dml_plr(df: pd.DataFrame, trim: bool = False, learner_name: str = "rf") -> d
         "lag_zori",
         "supply_constraint",
         "median_gross_rent",
+        "pre_permits_per_1k",
         "population",
         "pop_growth",
     ]
@@ -397,7 +437,7 @@ def make_figures(panel: pd.DataFrame, results: dict) -> None:
 
 
 def write_tex(results: dict, panel: pd.DataFrame) -> None:
-    desc = panel[["rent_growth_pct", "net_migration_rate_pp", "zori", "population", "median_income", "vacancy_rate", "renter_share"]].describe(
+    desc = panel[["rent_growth_pct", "net_migration_rate_pp", "zori", "population", "median_income", "vacancy_rate", "renter_share", "pre_permits_per_1k"]].describe(
         percentiles=[0.25, 0.5, 0.75]
     )
     desc_rows = []
@@ -409,6 +449,7 @@ def write_tex(results: dict, panel: pd.DataFrame) -> None:
         "median_income": "Median household income",
         "vacancy_rate": "Vacancy rate",
         "renter_share": "Renter share",
+        "pre_permits_per_1k": "Pre-pandemic permits per 1,000 residents",
     }
     for var, label in labels.items():
         row = desc[var]
