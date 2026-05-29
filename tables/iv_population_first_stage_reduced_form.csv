@@ -1,0 +1,3 @@
+model,dependent_variable,estimate,std_error,f_stat
+First stage,Population-growth shock,0.6872675179373785,0.18695391512646337,13.513956235042953
+Reduced form,Rent-growth acceleration,1.6012298154288438,0.35089438182466803,
