@@ -149,6 +149,22 @@ def add_optional_csv(panel: pd.DataFrame, folder: str, filename: str) -> pd.Data
     return panel.merge(add, on=[c for c in ["fips", "year"] if c in add.columns], how="left")
 
 
+def build_bps_2020() -> pd.DataFrame:
+    path = RAW / "bps" / "bps_2020_county.txt"
+    if not path.exists():
+        print("No 2020 BPS county file found; continuing without permits proxy.")
+        return pd.DataFrame(columns=["fips", "permits_2020_units"])
+
+    df = pd.read_csv(path, skiprows=3, header=None, encoding="latin1")
+    df = df[df[0].astype(str).str.fullmatch(r"\d{4}", na=False)].copy()
+    df["fips"] = df[1].astype(str).str.zfill(2) + df[2].astype(str).str.zfill(3)
+    unit_cols = [7, 10, 13, 16]
+    for col in unit_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    df["permits_2020_units"] = df[unit_cols].sum(axis=1)
+    return df[["fips", "permits_2020_units"]]
+
+
 def main() -> None:
     PROCESSED.mkdir(parents=True, exist_ok=True)
     INTERMEDIATE.mkdir(parents=True, exist_ok=True)
@@ -159,6 +175,7 @@ def main() -> None:
     mig = build_migration()
     panel = zori.merge(mig, on=["fips", "year"], how="left")
     panel = add_optional_csv(panel, "acs", "acs_county_year.csv")
+    panel = panel.merge(build_bps_2020(), on="fips", how="left")
     panel = add_optional_csv(panel, "bps", "bps_county_year.csv")
 
     if "population" in panel.columns:
@@ -172,6 +189,14 @@ def main() -> None:
         panel["population_lag"] = panel["irs_population_base"]
         panel["net_mig_share"] = panel["net_migration"] / panel["population_lag"]
         panel["gross_inflow_share"] = panel["gross_inflow"] / panel["population_lag"]
+
+    base_2020 = (
+        panel.loc[panel["year"].eq(2020), ["fips", "irs_population_base"]]
+        .dropna()
+        .rename(columns={"irs_population_base": "irs_population_base_2020"})
+    )
+    panel = panel.merge(base_2020, on="fips", how="left")
+    panel["permits_2020_per_capita"] = panel["permits_2020_units"] / panel["irs_population_base_2020"]
 
     panel.to_csv(PROCESSED / "county_year_panel.csv", index=False)
     print(f"wrote {PROCESSED / 'county_year_panel.csv'} with {len(panel):,} rows")

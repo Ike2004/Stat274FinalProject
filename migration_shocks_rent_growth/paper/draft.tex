@@ -1,24 +1,17 @@
 \documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.9in]{geometry}
 \usepackage{amsmath}
-\usepackage{setspace}
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{hyperref}
-\usepackage{natbib}
+\usepackage{setspace}
 \usepackage{hanging}
 
-\hypersetup{
-  colorlinks=true,
-  linkcolor=blue,
-  citecolor=blue,
-  urlcolor=blue
-}
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+\setstretch{1.08}
 
-\onehalfspacing
-
-\title{Migration Shocks and Rent Growth in Supply-Constrained Housing Markets}
+\title{Early-Pandemic Migration-Demand Shocks and Subsequent Rent Growth}
 \author{Draft}
 \date{May 2026}
 
@@ -26,198 +19,172 @@
 \maketitle
 
 \begin{abstract}
-The COVID-19 pandemic and the expansion of remote work changed the geography of household location choice in the United States. This paper studies whether pandemic-era population inflows were associated with faster local rent growth, and whether this relationship was stronger in housing markets with more restrictive supply conditions. I construct a county-year panel linking Zillow Observed Rent Index data, IRS county-to-county migration flows, American Community Survey controls, Census building permits, and land-use regulation measures. The preferred design classifies counties into high-, neutral-, and low-inflow groups based on pandemic-era net in-migration and estimates a binned difference-in-differences model with county and year fixed effects. I then test whether high-inflow counties experienced larger post-2020 rent increases in more zoning-restrictive or otherwise supply-constrained markets. The design shifts attention away from remote-work adoption itself, which is difficult to separate from broader pandemic shocks, and instead focuses on migration-driven housing demand as the proximate treatment. The empirical interpretation depends on parallel pre-trends and on defining migration exposure with a fixed, pre-specified pandemic window.
+This paper studies whether counties exposed to unusually large early-pandemic migration-demand shocks experienced faster subsequent rent growth. I define a county's migration shock as its 2021 IRS net migration rate relative to its own 2019--2020 pre-pandemic baseline and classify counties into five shock quintiles. The main empirical design uses a lagged binned difference-in-differences and event-study framework with county and year fixed effects, where post-treatment rent growth begins in 2022. This design treats migration as a broad demand shock that may include population inflow, migrant composition, income, remote-work status, and housing preferences, rather than as a clean instrument for population growth. I then test whether the rent response is larger in low-permit counties, used as an imperfect proxy for supply-constrained housing markets. The identifying assumption is that high- and middle-shock counties would have followed parallel rent-growth trends absent the migration shock, which I assess using event-study pre-trends.
 \end{abstract}
 
-\section{Introduction}
+\section{Research Question}
 
-The COVID-19 pandemic produced a large and uneven reshuffling of households across U.S. local housing markets. Remote work relaxed the link between workplace location and residence for many workers, allowing some households to leave expensive employment centers and move toward lower-cost, warmer, less dense, or higher-amenity areas. These moves were not evenly distributed across space. Some counties received sharp population inflows, while others experienced outflows or little change.
+The COVID-19 pandemic changed where many households could live. Remote work, demand for space, and amenity preferences allowed some households to move away from traditional employment centers and toward different local housing markets. This paper asks whether counties that experienced unusually large early-pandemic migration-demand shocks subsequently experienced faster rent growth.
 
-This paper asks whether these pandemic-era migration shocks contributed to local rent growth. The question is especially important in housing markets where supply cannot adjust quickly. If incoming households increase demand for rental housing, the rent response should be larger where vacancy rates are low, permitting is slow, housing-unit growth is limited, or zoning restrictions make new construction difficult. In contrast, more elastic markets should absorb inflows with smaller price effects.
-
-The main research question is: did pandemic-era population inflows increase local rent growth, and were these effects stronger in supply-constrained housing markets?
-
-This framing separates the project from a direct study of remote work adoption. Remote work is an important mechanism, but treating remote work itself as the treatment is empirically difficult because remote-work adoption coincided with many other shocks: pandemic health risk, fiscal transfers, interest-rate changes, labor-market restructuring, and local policy responses. I therefore treat migration inflows as the proximate local housing-demand shock and study how rents changed in places differentially exposed to that shock.
-
-The contribution is threefold. First, the paper estimates the relationship between migration-driven demand and local rent growth using a county-year panel. Second, it tests whether rent responses were amplified by supply constraints, with zoning restrictiveness as the preferred institutional measure. Third, it clarifies the causal interpretation of pandemic migration studies by distinguishing remote work and amenities as background mechanisms from realized migration inflows as the main treatment exposure.
-
-\section{Background and Related Literature}
-
-This project relates to research on remote work, housing demand, and local housing supply. Mondragon and Wieland (2022) argue that the shift to remote work increased demand for housing, especially in areas attractive to remote workers. Howard (2023) studies the short- and long-run housing-market effects of remote work in the United States. Dingel and Neiman (2020) provide a widely used measure of work-from-home feasibility across occupations, which helps explain why some labor markets were more exposed to the remote-work transition.
-
-The paper also connects to urban economics research on housing supply constraints. Standard models predict that a positive demand shock raises prices more in markets where housing supply is inelastic. Land-use regulation, geographic limits, low vacancy, and slow permitting can all reduce the ability of supply to respond. The Wharton Residential Land Use Regulatory Index provides one empirical measure of local regulatory restrictiveness and has been widely used to study housing supply constraints.
+The estimand is reduced form. I do not interpret the main coefficient as the pure causal effect of population growth. IRS migration shocks may bundle several mechanisms: population inflow, higher-income movers, remote-work status, demand for larger units, and willingness to pay for local amenities. The empirical question is therefore whether exposure to a large early-pandemic migration-demand shock predicts faster subsequent rent growth, and whether this relationship is stronger in counties where housing supply appears more constrained.
 
 \section{Data}
 
-\subsection{Unit of Analysis}
-
-The unit of analysis is a county-year panel covering U.S. counties from the pre-pandemic period through the pandemic and early post-pandemic period. The baseline sample is intended to cover 2018 through 2023, subject to data availability.
-
-\subsection{Outcome: Rent Growth}
-
-The main outcome is annual local rent growth, measured as the change in log rental prices:
+The unit of analysis is a county-year panel. Rent outcomes come from Zillow's county-level Zillow Observed Rent Index (ZORI), aggregated from monthly observations to annual county rent levels. The outcome is annual log rent growth,
 \[
-\Delta \log Rent_{ct} = \log Rent_{ct} - \log Rent_{c,t-1}.
+\Delta \log Rent_{ct}=\log Rent_{ct}-\log Rent_{c,t-1}.
 \]
-The preferred rent measure is the Zillow Observed Rent Index (ZORI). ZORI is available monthly and is aggregated to the county-year level by averaging monthly index values within each county-year. A robustness check replaces ZORI with ACS median gross rent.
-
-\subsection{Treatment: Migration Shock}
-
-The main treatment exposure is pandemic-era population inflow. I construct net in-migration as a share of prior-year county population:
+Migration measures come from IRS county migration files. IRS years are interpreted as destination years; for example, the 2019--2020 file corresponds to destination year 2020. I use exemptions, which are closer to persons than tax returns, to define county net migration rates:
 \[
-NetMigShare_{ct} =
-\frac{Inflow_{ct} - Outflow_{ct}}{Population_{c,t-1}}.
+NetMigRate_{ct}=\frac{Inflow_{ct}-Outflow_{ct}}{PopulationBase_{c,t-1}}.
 \]
-The baseline design classifies counties using cumulative pandemic-era net migration, preferably measured over 2020--2022:
+The population base is constructed from IRS exemptions as non-migrant exemptions plus out-migrant exemptions. The ideal supply-side measure would be a direct county-level index of zoning or land-use restrictiveness, since restrictive zoning is one institutional reason local housing supply may respond slowly to demand shocks. Such zoning measures are not consistently available for the full county sample used here. I therefore proxy for supply constraints using 2020 residential permits per capita from the Census Building Permits Survey. Counties with fewer permits per capita are treated as lower-permit, potentially more supply-constrained markets. This proxy is motivated by zoning and supply-elasticity theory, but it should not be interpreted as a direct legal zoning measure.
+
+The analysis uses public data sources: Zillow ZORI for rents, IRS SOI county migration files for inflows and outflows, and the Census Building Permits Survey for residential permitting. A secondary extension can also merge Census county population estimates to rescale the reduced-form migration shock into measured population growth, but that exercise requires stronger assumptions and is not the main design.
+
+\section{Treatment Timing and Empirical Design}
+
+The treatment is based on an early-pandemic abnormal migration shock. For county $c$, define the pre-pandemic baseline as
 \[
-PandemicShock_c =
-\sum_{t=2020}^{2022} NetMigShare_{ct}.
+PreNetMigRate_c = 0.5(NetMigRate_{c,2019}+NetMigRate_{c,2020}),
 \]
-Counties in the top quartile of this distribution are classified as high-inflow counties. Counties in the bottom quartile are classified as low-inflow counties. Counties between these cutoffs form the neutral comparison group. Robustness checks use terciles, quintiles, and continuous migration measures.
-
-\subsection{Controls}
-
-Control variables include demographic, economic, and housing-market characteristics. These include population size, median household income, income growth, unemployment, renter share, vacancy rate, housing units, and permits per capita. The main sources are the American Community Survey and Census Building Permits Survey.
-
-\subsection{Supply Constraints}
-
-The preferred supply-constraint measure is zoning or land-use restrictiveness. The main specification uses a binary high-zoning indicator based on whether a county is above the median of a zoning restrictiveness index. Because zoning is slow-moving and may itself respond to long-run local economic conditions, the preferred measure should be pre-pandemic or time-invariant.
-
-Additional supply-side measures include pre-pandemic rental vacancy rate, permits per capita, housing-unit growth, renter share, and alternative continuous zoning indices.
-
-\section{Empirical Strategy}
-
-\subsection{Baseline Binned Difference-in-Differences}
-
-The baseline model compares rent growth before and after the pandemic shock across counties with different migration exposure:
+and define the early-pandemic shock as
+\[
+Shock_c = NetMigRate_{c,2021} - PreNetMigRate_c.
+\]
+The main specification divides counties into five quintiles of $Shock_c$. Q3 is the omitted middle-shock group. The post period starts after the early migration shock:
+\[
+Post_t=1[t\geq 2022].
+\]
+The main binned DiD model is
 \[
 \Delta \log Rent_{ct}
-= \beta_1 HighInflow_c \times Post_t
-+ \beta_2 LowInflow_c \times Post_t
-+ \alpha_c + \delta_t + X_{ct}\gamma + \epsilon_{ct}.
+= \sum_{q\in\{Q1,Q2,Q4,Q5\}}\beta_q Q_{cq}\times Post_t
++\alpha_c+\delta_t+\epsilon_{ct},
 \]
-Here, $\alpha_c$ are county fixed effects, $\delta_t$ are year fixed effects, and $X_{ct}$ is a vector of time-varying controls. The coefficient $\beta_1$ measures whether high-inflow counties experienced faster rent growth after 2020 relative to neutral counties, net of county and year fixed effects. The coefficient $\beta_2$ measures the analogous change for low-inflow counties.
+where $\alpha_c$ are county fixed effects and $\delta_t$ are year fixed effects. Standard errors are clustered by county.
 
-The preferred interpretation is not that migration is randomly assigned. Instead, the model asks whether counties that received large pandemic-era inflows experienced differential rent growth after the shock, conditional on fixed county characteristics, common year shocks, and observed controls.
-
-\subsection{Supply-Constraint Heterogeneity}
-
-To test whether rent responses were larger in supply-constrained markets, I estimate:
-\begin{align*}
-\Delta \log Rent_{ct}
-=&\ \beta_1 HighInflow_c \times Post_t
-+ \beta_2 HighInflow_c \times Post_t \times HighZoning_c \\
-&+ \beta_3 LowInflow_c \times Post_t
-+ \alpha_c + \delta_t + X_{ct}\gamma + \epsilon_{ct}.
-\end{align*}
-The parameter of interest is $\beta_2$. A positive $\beta_2$ would indicate that high-inflow counties experienced larger post-2020 rent growth when they were also zoning-restrictive. This is the main test of the supply-constraint mechanism.
-
-\subsection{Event-Study Specification}
-
-The key identifying assumption is that high-, neutral-, and low-inflow counties would have followed parallel rent-growth trends absent the pandemic migration shock. I assess this assumption with an event-study specification:
+The event-study specification focuses on the highest-shock quintile relative to Q3:
 \[
 \Delta \log Rent_{ct}
-= \sum_{\tau \neq 2019}
-\theta_{\tau}
-HighInflow_c \times 1[t=\tau]
-+ \alpha_c + \delta_t + X_{ct}\gamma + \epsilon_{ct}.
+= \sum_{\tau\neq 2019}\theta_\tau Q5_c\times 1[t=\tau]
++\alpha_c+\delta_t+\epsilon_{ct}.
 \]
-The omitted year is 2019. Coefficients for 2018 and other pre-period years should be close to zero if the comparison is credible. Large pre-trends would weaken the causal interpretation and suggest that high-inflow counties were already on different rent trajectories.
+The omitted year is 2019. This figure is a central diagnostic, not an appendix check.
 
-\subsection{Instrumental Variables Extension}
+\section{Identification}
 
-As an extension, I consider using pre-pandemic amenity and climate exposure interacted with the post-pandemic period as predictors of migration inflows:
-\[
-ClimateAmenity_c \times Post_t
-\rightarrow MigrationShock_{ct}
-\rightarrow \Delta \log Rent_{c,t+1}.
-\]
-This extension must be interpreted cautiously. Climate and amenities may affect rents directly, not only through migration, especially if preferences for space, weather, or local amenities changed during the pandemic. For that reason, I treat the IV design as supplementary rather than as the main identification strategy.
+The key identifying assumption is parallel trends: absent the early-pandemic migration-demand shock, high-shock and middle-shock counties would have followed similar rent-growth trajectories after 2021. This assumption may fail if high-shock counties were already improving in amenities or labor markets, if pandemic migrants were systematically richer or more likely to work remotely, or if regional shocks such as growth in Sun Belt markets drove both migration and rents. Rent growth itself can also affect migration if treatment and outcome windows overlap.
 
-\section{Identification Threats}
-
-The primary threat is endogenous migration. Counties with stronger labor markets, rising amenities, or better fiscal conditions may attract migrants and experience rent growth for reasons unrelated to a migration-demand shock. County fixed effects remove time-invariant differences, and year fixed effects remove common national shocks, but time-varying local shocks remain a concern.
-
-A second threat is mechanical treatment definition. If high-inflow status is defined using the full post-period, including years in which rent growth is already responding, the treatment groups may reflect the same economic forces that drive the outcome. To reduce this problem, the treatment window should be fixed in advance, and robustness checks should show whether results change when the shock is defined using narrower windows.
-
-A third threat is measurement error. IRS migration data are based on address changes observed in tax returns and do not capture all movers. In addition, the IRS changed its matching process beginning with the 2022--2023 migration files. The paper should therefore report whether results are robust to excluding 2023 or using only 2020--2022 migration exposure.
-
-A fourth threat is rent-index coverage. ZORI is strongest in counties with sufficient rental listings and may underrepresent thin rural markets. The analysis should report sample coverage and test robustness using ACS median gross rent where possible.
+The revised design addresses these concerns by defining treatment using the early 2021 migration shock and measuring the main rent response beginning in 2022. County fixed effects remove time-invariant county differences, and year fixed effects remove common annual shocks. Event-study estimates assess whether rent-growth trends were already diverging before the shock. The design remains reduced form: it estimates the relationship between early migration-demand exposure and subsequent rent growth, not the pure effect of measured population counts.
 
 \section{Results}
 
-Table \ref{tab:main_results} reports the first-pass empirical results using the currently assembled ZORI and IRS migration panel. Column (1) estimates the binned difference-in-differences specification. The coefficient on $HighInflow_c \times Post_t$ is negative and statistically significant, while the coefficient on $LowInflow_c \times Post_t$ is also negative. This pattern suggests that the current high-, neutral-, and low-inflow binning should not yet be interpreted as a final causal estimate. In particular, the neutral comparison group may include counties with unusually strong post-pandemic rent growth, or the treatment window may be too contemporaneous with the outcome window.
+\subsection{Descriptive Evidence}
 
-Column (2) reports a continuous migration specification. In contrast to the binned model, the coefficient on net migration share is positive and statistically significant. This result is more consistent with the demand-shock hypothesis: counties with larger migration inflows experienced faster rent growth. However, because realized migration remains endogenous, this estimate should be interpreted as conditional evidence rather than a fully causal effect.
+Table \ref{tab:shock_quantiles} reports the shock cutoffs used to form the five groups. The 80th percentile is positive, so the highest-shock quintile experienced positive abnormal net migration on average. Table \ref{tab:shock_group_summary} shows that Q5 counties had the largest average shock and the highest mean 2022--2023 rent growth, but they also had higher 2020 permits per capita. This means supply heterogeneity must be interpreted carefully.
 
-\input{../output/tables/summary_by_group.tex}
+\input{../output/tables/shock_quantiles.tex}
+\input{../output/tables/shock_group_summary.tex}
 
-\input{../output/tables/main_results.tex}
-
-\input{../output/tables/quintile_did.tex}
-
-The divergence between the binned and continuous specifications is useful diagnostically. The five-bin model in Table \ref{tab:quintile_did} also does not produce a monotonic positive DiD pattern across migration-shock groups. This indicates that the next stage of the analysis should focus on pre-trend event studies, alternative bin definitions, and lagged timing in which migration shocks are measured before subsequent rent growth. The zoning heterogeneity test is not yet reported because the county-level zoning restrictiveness file has not been merged into the analysis panel.
-
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{../output/figures/migration_shock_distribution.png}
-\caption{Distribution of Pandemic Migration Shock}
-\label{fig:migration_shock_distribution}
+\includegraphics[width=0.78\textwidth]{../output/figures/rent_growth_by_early_shock_quintile.png}
+\caption{Average Annual Rent Growth by Early-Pandemic Shock Quintile}
+\label{fig:raw_trends}
 \end{figure}
 
-\begin{figure}[!htbp]
+Figure \ref{fig:raw_trends} plots raw rent-growth trends by shock quintile. The plot is useful for checking whether the groups were moving similarly before the post period and whether separation appears after the early-pandemic shock.
+
+\subsection{Event-Study Evidence}
+
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{../output/figures/rent_growth_by_group.png}
-\caption{Average Rent Growth by Migration-Shock Group}
-\label{fig:rent_growth_by_group}
+\includegraphics[width=0.78\textwidth]{../output/figures/event_study_q5_vs_q3.png}
+\caption{Event-Study Coefficients: Q5 Relative to Q3}
+\label{fig:event_study}
 \end{figure}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.78\textwidth]{../output/figures/rent_growth_by_quintile.png}
-\caption{Average Rent Growth by Migration-Shock Quintile}
-\label{fig:rent_growth_by_quintile}
-\end{figure}
+Figure \ref{fig:event_study} reports event-study coefficients for Q5 counties relative to Q3 counties. The 2018 and 2020 pre/post-boundary coefficients are close to zero relative to their confidence intervals, while 2021 and 2022 are positive. The 2023 coefficient turns negative. This pattern is suggestive of a short-run post-shock rent response, but the reversal in 2023 means the evidence is not a clean monotonic treatment effect.
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.78\textwidth]{../output/figures/quintile_did_coefficients.png}
-\caption{Five-Bin DiD Coefficients Relative to the Middle Quintile}
-\label{fig:quintile_did_coefficients}
-\end{figure}
+\subsection{Main DiD Estimate}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.78\textwidth]{../output/figures/migration_binscatter.png}
-\caption{Rent Growth and Net Migration Share}
-\label{fig:migration_binscatter}
-\end{figure}
+\input{../output/tables/main_lagged_did.tex}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.78\textwidth]{../output/figures/event_study_high_inflow.png}
-\caption{Event-Study Coefficients for High-Inflow Counties}
-\label{fig:event_study_high_inflow}
-\end{figure}
+Table \ref{tab:main_lagged_did} shows the main lagged five-bin DiD estimates. Relative to Q3 counties, Q5 counties have a post-2021 coefficient of 0.0019 with a standard error of 0.0030. The estimate is positive but imprecise. Q1 counties have a negative coefficient, while Q2 and Q4 are close to zero. I therefore interpret the main binned evidence as suggestive but not conclusive.
 
-\section{Robustness Checks}
+\subsection{Supply-Constraint Heterogeneity}
 
-The paper should include the following robustness exercises: vary migration bins using terciles, quartiles, and quintiles; estimate continuous specifications using net in-migration share; replace ZORI rent growth with ACS median gross rent growth; exclude superstar or large coastal counties; aggregate counties to metropolitan areas where appropriate; exclude 2023 migration data because of the IRS matching-process change; estimate placebo DiD models using only pre-pandemic years; replace zoning restrictiveness with vacancy rate, permits per capita, and housing-unit growth; use continuous zoning indices rather than a binary high-zoning indicator; and weight regressions by county population and compare with unweighted estimates.
+\input{../output/tables/supply_heterogeneity_low_permit.tex}
 
-\section{Expected Contribution}
+Table \ref{tab:supply_heterogeneity} tests whether the Q5 response is larger in low-permit counties. This exercise is intended to approximate the zoning/supply-constraint mechanism: if restrictive land-use regulation or other supply frictions limit new construction, then a migration-driven demand shock should translate more strongly into rent growth. The coefficient on $Q5\times Post\times LowPermit$ is negative and imprecise. Thus, using 2020 permits per capita as the available supply proxy, I do not find strong evidence that low-permit counties experienced a larger Q5 rent-growth response. This does not rule out zoning heterogeneity; it only means that this permit-based proxy does not provide conclusive support in the current panel. A stronger test would merge a direct zoning index, such as a Wharton-style land-use regulation measure, and compare the permit-based results with legal restrictiveness measures.
 
-This paper contributes to the literature by reframing pandemic remote-work housing effects as a migration-driven local demand shock. This distinction matters for causal inference. Remote work was part of a broader macroeconomic and social shock, while county-level migration inflows provide a more direct measure of local housing-demand pressure. By interacting migration shocks with supply constraints, the paper identifies which types of markets were most vulnerable to rent pressure during the pandemic reshuffling.
+\subsection{Robustness}
 
-The policy relevance is direct. If migration shocks have larger rent effects in zoning-restrictive markets, then affordability pressure after demand shocks is not only a function of how many people move, but also of whether local institutions allow housing supply to respond.
+As robustness, I estimate a continuous-shock specification and a version excluding 2023, the year affected by IRS matching-process changes. These results are reported in the output tables and should be interpreted as sensitivity checks rather than the main design. Appendix \ref{app:iv} also discusses an IV scaling exercise that instruments measured Census population-growth shocks with IRS migration shocks. I do not use that IV as the main identification strategy because it requires the stronger exclusion restriction that IRS migration shocks affect rents only through measured population growth. Future extensions should add ACS median gross rent, population weights, state-by-year or region-by-year shocks, and direct zoning or vacancy measures.
 
 \section{Conclusion}
 
-Pandemic-era migration reshaped local housing demand across U.S. counties. This paper proposes a county-year empirical design to estimate whether high-inflow counties experienced faster rent growth after 2020 and whether this effect was amplified in supply-constrained markets. The strongest version of the design uses fixed migration-shock bins, county and year fixed effects, pre-trend tests, and pre-pandemic measures of zoning or supply constraints.
+This paper revises the migration-rent design around treatment timing. Counties are grouped by abnormal 2021 net migration relative to their own 2019--2020 baseline, and the main outcome is subsequent rent growth in 2022--2023. The results are mixed. Descriptive and event-study evidence show some short-run separation for the highest-shock counties, but the main five-bin DiD estimate for Q5 is positive and statistically imprecise, and the effect does not persist cleanly through 2023. The supply-constraint interaction using low 2020 permits is also imprecise.
 
-The central empirical prediction is that migration inflows should raise rents more in counties where housing supply is less elastic. If supported by the data, the findings would suggest that pandemic migration contributed to local rental pressure and that supply restrictions played an important role in translating demand shocks into affordability shocks.
+The evidence is therefore best read as suggestive rather than definitive. The revised design is more credible than a contemporaneous cumulative 2020--2022 binning strategy, but the identifying assumption remains strong: high-shock counties must have followed similar rent-growth paths absent the early-pandemic migration-demand shock. A stronger final version would merge richer supply measures, especially direct zoning or vacancy data, and report additional state- or region-adjusted robustness checks.
+
+\appendix
+
+\section{IV Scaling Exercise}
+\label{app:iv}
+
+As a secondary exercise, one can use IRS migration shocks as an instrument for measured Census population-growth shocks. This exercise answers a different question from the main paper. The main design estimates the reduced-form relationship between abnormal population-inflow exposure and subsequent rent growth. The IV exercise instead rescales that relationship by measured Census population growth:
+\[
+Y_c = \beta D_c + X_c^{\prime}\gamma + \epsilon_c,
+\]
+where $Y_c$ is rent-growth acceleration, $D_c$ is a Census population-growth shock, and $D_c$ is instrumented by an IRS migration shock. In the earlier IV version of this project, the treatment was
+\[
+D_c = \Delta \log Pop_{c,2021:2022} - \Delta \log Pop_{c,2019:2020},
+\]
+the outcome was
+\[
+Y_c = \Delta \log Rent_{c,2021:2022} - \Delta \log Rent_{c,2019:2020},
+\]
+and the instrument was
+\[
+Z_c = IRSInflowRate_{c,2021:2022} - IRSInflowRate_{c,2019:2020}.
+\]
+
+The motivation for this exercise is intuitive: if IRS migration shocks predict actual Census population growth, the IV coefficient can be read as a population-growth-scaled rent response. The limitation is equally important. The exclusion restriction requires IRS migration shocks to affect rents only through measured population growth. That may fail during the pandemic because migrants may differ in income, remote-work status, demand for space, and willingness to pay for amenities. For that reason, I interpret the IV estimates as suggestive scaling evidence rather than definitive causal estimates.
+
+\begin{table}[H]\centering
+\caption{Appendix: IV Scaling Estimates from Earlier Specification}
+\label{tab:iv_appendix}
+\begin{tabular}{lrrrrr}
+\toprule
+Specification & Estimate & Std. error & 95\% CI low & 95\% CI high & First-stage F \\
+\midrule
+No controls & 3.433 & 1.524 & 0.446 & 6.420 & 9.113 \\
+Baseline controls & 2.330 & 0.947 & 0.473 & 4.187 & 13.514 \\
+Controls + state FE & 0.599 & 0.568 & -0.514 & 1.712 & 5.660 \\
+\bottomrule
+\multicolumn{6}{p{0.88\textwidth}}{\footnotesize Notes: The endogenous treatment is a Census population-growth shock; the instrument is an IRS migration shock. The estimates come from the earlier IV version of the project and are reported here only as a scaling exercise.}
+\end{tabular}
+\end{table}
+
+\begin{table}[H]\centering
+\caption{Appendix: IV Supply-Constraint Split from Earlier Specification}
+\label{tab:iv_supply_appendix}
+\begin{tabular}{lrrrrr}
+\toprule
+Group & Estimate & Std. error & 95\% CI low & 95\% CI high & First-stage F \\
+\midrule
+Low-permit / more constrained & 5.365 & 5.270 & -4.964 & 15.694 & 1.163 \\
+High-permit / less constrained & 2.151 & 0.890 & 0.406 & 3.896 & 17.768 \\
+\bottomrule
+\multicolumn{6}{p{0.88\textwidth}}{\footnotesize Notes: Low-permit counties are below the sample median in 2020 residential permits per capita. The weak first stage in the low-permit group makes the constrained-market IV estimate unreliable.}
+\end{tabular}
+\end{table}
+
+The appendix IV results are useful because they show that the migration shock is related to measured population growth and that the reduced form can be translated into population-growth units. They should not replace the main lagged five-bin DiD/event-study design. The main text therefore keeps the estimand as the reduced-form effect of early-pandemic population-inflow exposure on subsequent rent growth.
 
 \section*{References}
-
 \begin{hangparas}{.25in}{1}
 Dingel, Jonathan I., and Brent Neiman. 2020. ``How Many Jobs Can Be Done at Home?'' \textit{Journal of Public Economics} 189: 104235.
 
