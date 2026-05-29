@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.mplconfig/
+
+# LaTeX build intermediates; keep source .tex/.qmd and final .pdf.
+paper/*.aux
+paper/*.log
+paper/*.out
+
+# Scratch output
+output/test.png
